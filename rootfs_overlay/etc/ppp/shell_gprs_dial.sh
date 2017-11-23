@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# gprs
+# shell_gprs_dial.sh
 #
 # Package mobile-data-connector 
 # Shell-script based GPRS/UMTS/LTE mobile data network dial script
