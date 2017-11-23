@@ -593,6 +593,18 @@ init_and_load_drivers() {
                 at_cmd "ATv1"
                 sleep 1
                 ;;
+
+            1bc7:0021)
+                print_usb_device "Telit HE910 4G LTE Module"
+                find_usb_device "" 1bc7 0021 /dev/ttyACM0
+                sleep 1
+                initiazlize_port $GPRS_DEVICE
+                sleep 1
+                # enable verbose AT command result messages
+                exec 3<>$GPRS_DEVICE
+                at_cmd "ATv1"
+                sleep 1
+                ;;
             
             esac
     done
