@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2017-05-24 15:22:19 gc]
+echo $0 [Version 2018-03-09 18:48:26 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -373,7 +373,7 @@ query_board_temp() {
 
 
 ##############################################################################
-# load modules and detect ttyUSB* devices
+# load modules and detect ttyUSB* devices (2018-03-09 gc: deprecated)
 ##############################################################################
 find_usb_device() {
     local reload_modules=$1
@@ -424,6 +424,35 @@ find_usb_device() {
             sleep 2
         done
     fi
+}
+
+##############################################################################
+# load modules and detect ttyACM* devices by specifying USB interface numbers
+# for application and modem port
+##############################################################################
+find_usb_device_by_interface_num() {
+    local reload_modules=$1
+    local dev_path=$2
+    local if_num_app=$3
+    local if_num_mod=$4
+
+    echo "app interface bInterfaceClass: `cat $dev_path/*:1.$if_num_app/bInterfaceClass`"
+    echo "modem interface bInterfaceClass: `cat $dev_path/*:1.$if_num_mod/bInterfaceClass`"
+    GPRS_DEVICE_APP="/dev/`ls $dev_path/*:1.$if_num_app/tty`"
+    GPRS_DEVICE=$GPRS_DEVICE_APP
+    GPRS_DEVICE_MODEM="/dev/`ls $dev_path/*:1.$if_num_mod/tty`"
+    GPRS_BAUDRATE=115200
+
+    
+    # wait until devices have setteled
+    for l in 1 2 3 4 5
+    do
+        if [ -c "$GPRS_DEVICE_APP" -a -c "$GPRS_DEVICE_MODEM" ]; then
+            return
+        fi
+        sleep 2
+    done
+    echo "Devices $GPRS_DEVICE_APP or $GPRS_DEVICE_MODEM not found"
 }
 
 print_usb_device() {
@@ -544,14 +573,15 @@ init_and_load_drivers() {
             1e2d:0058)
                 print_usb_device "Cinterion EHS5-E in USB CDC-ACM mode"
 
-                find_usb_device "$reload_modules" 1e2d  0058 /dev/ttyACM0 /dev/ttyACM3
+                #find_usb_device "$reload_modules" 1e2d  0058 /dev/ttyACM0 /dev/ttyACM3
+                find_usb_device_by_interface_num "$reload_modules" $id 0 6
                 ;;
 
 
             1e2d:0061)
                 print_usb_device "Cinterion PLS8-E"
 
-                find_usb_device "$reload_modules" 1e2d  0061 /dev/ttyACM1 /dev/ttyACM0
+                find_usb_device "$reload_modules" 1e2d  0061 /dev/ttyACM1
                 sleep 1
                 initiazlize_port $GPRS_DEVICE
                 sleep 1
@@ -575,6 +605,7 @@ init_and_load_drivers() {
                         exit 1
                         ;;
                 esac
+                find_usb_device_by_interface_num "$reload_modules" $id 2 0
                 ;;
 
 
@@ -595,10 +626,12 @@ init_and_load_drivers() {
                 ;;
 
             1bc7:0021)
-                print_usb_device "Telit HE910 4G LTE Module"
-                find_usb_device "" 1bc7 0021 /dev/ttyACM0
-                sleep 1
-                initiazlize_port $GPRS_DEVICE
+                print_usb_device "Telit HE910 3G Module"
+                # find_usb_device "" 1bc7 0021 /dev/ttyACM0
+                # sleep 1
+                # initiazlize_port $GPRS_DEVICE
+                find_usb_device_by_interface_num "$reload_modules" $id 0 6
+
                 sleep 1
                 # enable verbose AT command result messages
                 exec 3<>$GPRS_DEVICE
@@ -1876,7 +1909,7 @@ at_cmd "AT+CMGF=1"
 
 #2009-08-28 gc: enable URC on incoming SMS (and break of data/GPRS connection)
 case "$TA_VENDOR $TA_MODEL" in
-    *SIEMENS*HC25* | *Cinterion*HC25* | *Cinterion*PH8* | *Cinterion*EHS5*)
+    *SIEMENS*HC25* | *Cinterion*HC25* | *Cinterion*PH8* | *Cinterion*PLS8* | *Cinterion*EHS5*)
         at_cmd "AT+CNMI=2,1"
         ;;
     *WAVECOM*)
@@ -1936,6 +1969,6 @@ exit 0
 
 # Local Variables:
 # mode: shell-script
-# time-stamp-pattern: "20/\\[Version[\t ]+%%\\]"
+# time-stamp-pattern: "40/\\[Version[\t ]+%%\\]"
 # backup-inhibited: t
 # End:
