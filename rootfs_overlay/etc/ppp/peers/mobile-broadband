@@ -1,5 +1,5 @@
 #
-# gprs
+# mobile-broadband
 #
 # pppd peer file for mobile data network for GPRS/UMTS/LTE communication
 # using mmobile-data-connector package
@@ -50,13 +50,15 @@ lcp-echo-interval 10
 lcp-max-configure 60
 lcp-restart 2
 
-# 2011-08-01 gc: added the following two statements to prevent
-#                assignment of dummy DNS address "10.11.12.13"
-#                on GPRS / UMTS terminal adapters (Siemens HC25, ...)
-connect-delay 5000
-ipcp-max-failure 30
 ipcp-accept-local
 ipcp-accept-remote
 
-mtu 1495
-mru 1495
+#mtu 1495
+#mru 1495
+
+persist
+holdoff 10
+maxfail 10
+
+# passive
+# novj

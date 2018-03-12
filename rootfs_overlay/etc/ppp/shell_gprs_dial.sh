@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 15:52:25 gc]
+echo $0 [Version 2018-03-12 16:29:50 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -447,8 +447,8 @@ find_usb_device_by_interface_num() {
     GPRS_DEVICE_APP="/dev/`ls $dev_path/*:1.$if_num_app/tty`"
     GPRS_DEVICE=$GPRS_DEVICE_APP
     GPRS_DEVICE_MODEM="/dev/`ls $dev_path/*:1.$if_num_mod/tty`"
-    GPRS_BAUDRATE=115200
-
+#    GPRS_BAUDRATE=115200
+    GPRS_BAUDRATE=921600
     
     # wait until devices have setteled
     for l in 1 2 3 4 5
@@ -693,6 +693,10 @@ identify_terminal_adapter() {
                     print "Found Cinterion HC25 UMTS/GPRS terminal adapter"
                 # HC25: enable network (UTMS=blue/GSM=green) status LEDs
                     at_cmd "AT^sled=1"
+# 2011-08-01 gc: added the following two options to prevent
+#                assignment of dummy DNS address "10.11.12.13"
+#                on GPRS / UMTS terminal adapters (Siemens HC25, ...)
+                   GPRS_PPP_OPTIONS="$GPRS_PPP_OPTIONS connect-delay 5000 ipcp-max-failure 30"
                     ;;
                 *PHS8* | *PH8*)
                     TA_MODEL=PH8
@@ -1147,7 +1151,7 @@ attach_PDP_context() {
         fi
     fi
     
-    ppp_args="call gprs nolog nodetach $GPRS_PPP_OPTIONS"
+    ppp_args="call mobile-broadband nolog nodetach $GPRS_PPP_OPTIONS"
     if [ \! -z "$GPRS_USER" ]; then
         ppp_args="$ppp_args user $GPRS_USER"
     fi
