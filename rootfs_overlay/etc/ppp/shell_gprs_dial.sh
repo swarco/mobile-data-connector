@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 17:41:11 gc]
+echo $0 [Version 2018-03-12 17:51:39 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -1192,8 +1192,13 @@ attach_PDP_context() {
             GPRS_DEVICE_MODEM=""
         fi
     fi
-    
-    ppp_args="call mobile-broadband nolog nodetach $GPRS_PPP_OPTIONS"
+
+    if [ -f /etc/ppp/peers/mobile-broadband ]; then
+        PEER=mobile-broadband
+    else
+        PEER=gprs
+    fi
+    ppp_args="call $PEER nolog nodetach $GPRS_PPP_OPTIONS"
     if [ \! -z "$GPRS_USER" ]; then
         ppp_args="$ppp_args user $GPRS_USER"
     fi
