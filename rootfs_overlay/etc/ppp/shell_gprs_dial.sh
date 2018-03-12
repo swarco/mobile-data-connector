@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 17:22:00 gc]
+echo $0 [Version 2018-03-12 17:34:57 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -473,6 +473,7 @@ find_usb_device_by_interface_num() {
     # wait until devices have setteled
     for l in 1 2 3 4 5
     do
+        #echo "app: $GPRS_DEVICE_APP, mod: $if_num_mod, ($GPRS_DEVICE_MODEM)"
         if [ -c "$GPRS_DEVICE_APP" -a \( -z "$if_num_mod" -o -c "$GPRS_DEVICE_MODEM" \) ]; then
             return
         fi
@@ -578,6 +579,7 @@ init_and_load_drivers() {
             1e2d:0053)
                 print_usb_device "Cinterion PH8 in USB component mode"
                 find_usb_device_by_interface_num "$reload_modules" $id 2
+                print "first USB port is $GPRS_DEVICE"
                 # find_usb_device "" 1e2d 0053 /dev/ttyUSB3
                 sleep 1
                 initiazlize_port $GPRS_DEVICE

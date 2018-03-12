@@ -57,8 +57,9 @@ ipcp-accept-remote
 #mru 1495
 
 persist
-holdoff 10
-maxfail 10
+holdoff 5
+# exit in case device number of /dev/ttyUSBx or /dev/ttyACMx device has changed
+maxfail 3
 
 # passive
 # novj
