@@ -121,7 +121,7 @@ do
     done
 
     if [ -z "$GPRS_ONLY_CSD" -o "$GPRS_ONLY_CSD" -eq 0 ]; then
-        sleep 30
+        sleep 5
     else
         sleep 1
     fi
