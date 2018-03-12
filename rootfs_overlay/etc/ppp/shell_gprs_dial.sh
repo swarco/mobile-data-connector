@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 15:12:55 gc]
+echo $0 [Version 2018-03-12 15:21:17 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -1205,6 +1205,24 @@ attach_PDP_context() {
             ppp_pid=$!
             echo $ppp_pid >/var/run/ppp0.pid
             status_net "PDP context attached (GPRS or UMTS)"
+
+# #            Experimential: Use USB-CDC Networking interface on PLS-8
+#              at_cmd "AT+CGACT=0,1"
+#              at_cmd "AT+CGACT?"
+#              at_cmd "AT+CGPADDR=1" 2
+
+             
+#              at_cmd "AT^SWWAN=1,1,1" 90 || (at_cmd "AT+CERR"; error)
+#              iptables -D INPUT -i usb1 -j ACCEPT
+#              iptables -A INPUT -i usb1 -j ACCEPT
+
+#              ifconfig usb1 up
+#              udhcpc -bn -i usb1
+#              status_net "PDP context attached (GPRS or UMTS)"
+
+# #            /usr/bin/modemstatus-wait ri break  <&3
+#              GPRS_DEVICE_MODEM=$GPRS_DEVICE
+#              ppp_pid=$$            
             ;;
         
 #         *)
