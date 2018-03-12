@@ -88,7 +88,7 @@ do
     # check each device in list if it is available and an valid character device
     for DEVICE in $GPRS_DEVICE
     do
-        logger checking device $DEVICE
+        logger -t GPRS "checking device $DEVICE"
         if ! [ -z $DEVICE ]; then
             GPRS_DEVICE=$DEVICE
             export GPRS_DEVICE
