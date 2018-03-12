@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 16:29:50 gc]
+echo $0 [Version 2018-03-12 17:22:00 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -432,6 +432,22 @@ find_usb_device() {
     fi
 }
 
+get_device_by_usb_interface()
+{
+    local dev_path=$1
+    local if_num=$2
+
+    (
+        cd $dev_path/*:1.$if_num
+        if [ -d tty ] ; then
+            echo "/dev/`ls tty`"
+        else
+            echo "/dev/`echo tty*`"
+        fi
+    )
+    
+}
+
 ##############################################################################
 # load modules and detect ttyACM* devices by specifying USB interface numbers
 # for application and modem port
@@ -440,20 +456,24 @@ find_usb_device_by_interface_num() {
     local reload_modules=$1
     local dev_path=$2
     local if_num_app=$3
-    local if_num_mod=$4
+    local if_num_mod="$4"
 
     echo "app interface bInterfaceClass: `cat $dev_path/*:1.$if_num_app/bInterfaceClass`"
     echo "modem interface bInterfaceClass: `cat $dev_path/*:1.$if_num_mod/bInterfaceClass`"
-    GPRS_DEVICE_APP="/dev/`ls $dev_path/*:1.$if_num_app/tty`"
+    #    GPRS_DEVICE_APP="/dev/`ls $dev_path/*:1.$if_num_app/tty`"
+    GPRS_DEVICE_APP=`get_device_by_usb_interface "$dev_path" $if_num_app`
     GPRS_DEVICE=$GPRS_DEVICE_APP
-    GPRS_DEVICE_MODEM="/dev/`ls $dev_path/*:1.$if_num_mod/tty`"
+    #    GPRS_DEVICE_MODEM="/dev/`ls $dev_path/*:1.$if_num_mod/tty`"
+    if ! [ -z "$if_num_mod" ]; then
+        GPRS_DEVICE_MODEM=`get_device_by_usb_interface "$dev_path" $if_num_mod`
+    fi
 #    GPRS_BAUDRATE=115200
     GPRS_BAUDRATE=921600
     
     # wait until devices have setteled
     for l in 1 2 3 4 5
     do
-        if [ -c "$GPRS_DEVICE_APP" -a -c "$GPRS_DEVICE_MODEM" ]; then
+        if [ -c "$GPRS_DEVICE_APP" -a \( -z "$if_num_mod" -o -c "$GPRS_DEVICE_MODEM" \) ]; then
             return
         fi
         sleep 2
@@ -557,8 +577,27 @@ init_and_load_drivers() {
 
             1e2d:0053)
                 print_usb_device "Cinterion PH8 in USB component mode"
+                find_usb_device_by_interface_num "$reload_modules" $id 2
+                # find_usb_device "" 1e2d 0053 /dev/ttyUSB3
+                sleep 1
+                initiazlize_port $GPRS_DEVICE
+                sleep 1
+                # connect file handle 3 with terminal adapter
+                exec 3<>$GPRS_DEVICE
+                at_cmd 'AT'
+                at_cmd "AT^SDPORT?"
+                case "$r" in
+                    *'^SDPORT: 3'*)
+                        print "Service Interface Allocation 3: Okay"
+                        ;;
+                    *)
+                        print "Must switch to Interface Allocation 3"
+                        at_cmd "AT^SDPORT=3"
+                        exit 1
+                        ;;
+                esac
 
-                find_usb_device "$reload_modules" 1e2d 0053 /dev/ttyUSB2 /dev/ttyUSB3
+                find_usb_device_by_interface_num "$reload_modules" $id 2 3
                 ;;
 
             1e2d:0054)
