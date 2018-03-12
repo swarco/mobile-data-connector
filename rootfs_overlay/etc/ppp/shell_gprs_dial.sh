@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 17:34:57 gc]
+echo $0 [Version 2018-03-12 17:41:11 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -582,7 +582,7 @@ init_and_load_drivers() {
                 print "first USB port is $GPRS_DEVICE"
                 # find_usb_device "" 1e2d 0053 /dev/ttyUSB3
                 sleep 1
-                initiazlize_port $GPRS_DEVICE
+                initialize_port $GPRS_DEVICE
                 sleep 1
                 # connect file handle 3 with terminal adapter
                 exec 3<>$GPRS_DEVICE
@@ -608,7 +608,7 @@ init_and_load_drivers() {
                 find_usb_device "" 1e2d 0054 /dev/ttyACM0
                 # switch to USB component mode
                 sleep 1
-                initiazlize_port $GPRS_DEVICE
+                initialize_port $GPRS_DEVICE
                 sleep 1
                 # connect file handle 3 with terminal adapter
                 exec 3<>$GPRS_DEVICE
@@ -630,7 +630,7 @@ init_and_load_drivers() {
 
                 find_usb_device "$reload_modules" 1e2d  0061 /dev/ttyACM1
                 sleep 1
-                initiazlize_port $GPRS_DEVICE
+                initialize_port $GPRS_DEVICE
                 sleep 1
                 exec 3<>$GPRS_DEVICE
                 at_cmd 'AT'
@@ -666,7 +666,7 @@ init_and_load_drivers() {
                 TA_MODEL="UC864"
                 find_usb_device "" 1bc7 1004 /dev/ttyUSB0
                 sleep 1
-                initiazlize_port $GPRS_DEVICE
+                initialize_port $GPRS_DEVICE
                 sleep 1
                 # enable verbose AT command result messages
                 exec 3<>$GPRS_DEVICE
@@ -681,7 +681,7 @@ init_and_load_drivers() {
 
                 # find_usb_device "" 1bc7 0021 /dev/ttyACM0
                 # sleep 1
-                # initiazlize_port $GPRS_DEVICE
+                # initialize_port $GPRS_DEVICE
                 find_usb_device_by_interface_num "$reload_modules" $id 0 6
 
                 sleep 1
@@ -844,7 +844,7 @@ identify_terminal_adapter() {
 }
 
 
-initiazlize_port() {
+initialize_port() {
     local device=$1
 
     # prevent blocking when opening the TTY device due modem status lines
@@ -1178,7 +1178,7 @@ attach_PDP_context() {
 # AT command interpreter on application port remains still accessible
 # connect file handle 3 with modem device
         print "Switching to modem interface $GPRS_DEVICE_MODEM"
-        if  initiazlize_port $GPRS_DEVICE_MODEM; then
+        if  initialize_port $GPRS_DEVICE_MODEM; then
             
             exec 3<>$GPRS_DEVICE_MODEM
             for l in 1 2 3 4 5
@@ -1670,7 +1670,7 @@ print "(Modem device: $GPRS_DEVICE_MODEM)"
 status GPRS_DEVICE_CMD   "$GPRS_DEVICE"
 status GPRS_DEVICE_MODEM "$GPRS_DEVICE_MODEM"
 
-if ! initiazlize_port $GPRS_DEVICE; then
+if ! initialize_port $GPRS_DEVICE; then
     sleep 10
     killall watchdog
     echo initializing port failed
