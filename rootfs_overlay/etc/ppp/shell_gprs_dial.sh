@@ -5,7 +5,7 @@
 # Package mobile-data-connector 
 # Shell-script based GPRS/UMTS/LTE mobile data network dial script
 #
-# Copyright (c) 2009-2017, SWARCO Traffic Systems GmbH
+# Copyright (c) 2009-2018, SWARCO Traffic Systems GmbH
 #                          Guido Classen <clagix@gmail.com>
 # All rights reserved.
 #     
@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 15:21:17 gc]
+echo $0 [Version 2018-03-12 15:52:25 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1

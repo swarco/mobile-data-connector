@@ -4,7 +4,7 @@
 # pppd peer file for mobile data network for GPRS/UMTS/LTE communication
 # using mmobile-data-connector package
 #
-# Copyright (c) 2007-2017, SWARCO Traffic Systems GmbH
+# Copyright (c) 2007-2018, SWARCO Traffic Systems GmbH
 #                          Guido Classen <clagix@gmail.com>
 # All rights reserved.
 #     
