@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-09 18:48:26 gc]
+echo $0 [Version 2018-03-12 15:12:55 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -222,13 +222,18 @@ wait_quiet() {
   local wait_str=""
   if [ "0$1" -gt 0 ]; then wait_time=$1; fi
   if [ \! -z "$2" ]; then wait_str="$2"; fi
-
+  local start_time=`date +%s`
   local line=""
   while IFS="" read -r -t$wait_time line<&3
   do
       #remove trailing carriage return
       line=${line%%${cr}*}
       print_rcv "$line"
+
+      if [ `date +%s` -ge $((start_time+wait_time)) ]; then
+          print "wait_quiet -- FORCED timeout"
+          break
+      fi
 
       if [ \! -z "$wait_str" ]; then
 #          print "wq: str -${wait_str}-"
@@ -245,6 +250,7 @@ wait_quiet() {
 #          print "wq: no str"
       fi
   done
+#  print "wait_quiet finished"
   return 0
 }
 
@@ -615,6 +621,8 @@ init_and_load_drivers() {
 
             1bc7:1004)
                 print_usb_device "Telit UC864-G 3G Module"
+                TA_VENDOR="Telit"
+                TA_MODEL="UC864"
                 find_usb_device "" 1bc7 1004 /dev/ttyUSB0
                 sleep 1
                 initiazlize_port $GPRS_DEVICE
@@ -627,6 +635,9 @@ init_and_load_drivers() {
 
             1bc7:0021)
                 print_usb_device "Telit HE910 3G Module"
+                TA_VENDOR="Telit"
+                TA_MODEL="HE910"
+
                 # find_usb_device "" 1bc7 0021 /dev/ttyACM0
                 # sleep 1
                 # initiazlize_port $GPRS_DEVICE
@@ -636,7 +647,7 @@ init_and_load_drivers() {
                 # enable verbose AT command result messages
                 exec 3<>$GPRS_DEVICE
                 at_cmd "ATv1"
-                sleep 1
+                wait_quiet 3
                 ;;
             
             esac
@@ -780,7 +791,9 @@ identify_terminal_adapter() {
             ;;
 
         *)
-            print "Found unkonwn terminal adapter"
+            if [ -z "$TA_VENDOR$TA_MODEL" ]; then
+                print "Found unkonwn terminal adapter"
+            fi
             ;;
     esac
 }
@@ -1441,6 +1454,67 @@ attach_PDP_context() {
                     esac
                 done
                 sleep 1
+            fi
+            # wait till pppd process has terminated
+            wait
+            ;;
+
+        *Telit*)
+            if [ \! -z "$GPRS_DEVICE_MODEM" ]; then
+                count=360
+                while [ -d /proc/$ppp_pid ]
+                do
+                    count=$(($count+1))
+                    if [ $count -gt 360 ]
+                    then
+                        count=0
+                        #
+                        query_signal_quality
+
+                        # query Packet Switched Data Information:
+                        at_cmd 'AT#PSNT?'
+                        case "$r" in
+                            *'#PSNT: 0,0'*)
+                                status_net "GPRS network"
+                                ;;
+                            *'#PSNT: 0,1'*)
+                                status_net "EGPRS network"
+                                ;;
+                            *'#PSNT: 0,2'*)
+                                status_net "WCDMA network"
+                                ;;
+                            *'#PSNT: 0,3'*)
+                                status_net "HSDPA network"
+                                ;;
+                            *'#PSNT: 0,4'*)
+                                status_net "unknown network or not registered"
+                                ;;
+                            *)
+                                status_net "unknown network"
+                                ;;
+                        esac
+                    fi
+
+                    while [ -d /proc/$ppp_pid ]  && IFS="" read -r -t10 line<&3
+                    do
+                        line=${line%%${cr}*}
+                        print_rcv "APP_PORT: $line"
+                        case $line in
+                            *+CMTI:* | *+CMT:*)
+                                echo SMS URC received
+                                if ! check_and_handle_SMS; then
+                                    kill -TERM $ppp_pid
+                                fi
+                                ;;
+                            *RING*)
+                                print "ringing"
+                                on_ring
+                                break;
+                                ;;
+                        esac
+                    done
+                    sleep 1
+                done
             fi
             # wait till pppd process has terminated
             wait
