@@ -89,7 +89,7 @@ do
     for DEVICE in $GPRS_DEVICE
     do
         logger -t GPRS "checking device $DEVICE"
-        if ! [ -z $DEVICE ]; then
+        if [ -c $DEVICE \( -o $DEVICE = "USB" \) ]; then
             GPRS_DEVICE=$DEVICE
             export GPRS_DEVICE
             export GPRS_BAUDRATE
