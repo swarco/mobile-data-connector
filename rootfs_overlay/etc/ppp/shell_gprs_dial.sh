@@ -459,12 +459,12 @@ find_usb_device_by_interface_num() {
     local if_num_mod="$4"
 
     echo "app interface bInterfaceClass: `cat $dev_path/*:1.$if_num_app/bInterfaceClass`"
-    echo "modem interface bInterfaceClass: `cat $dev_path/*:1.$if_num_mod/bInterfaceClass`"
     #    GPRS_DEVICE_APP="/dev/`ls $dev_path/*:1.$if_num_app/tty`"
     GPRS_DEVICE_APP=`get_device_by_usb_interface "$dev_path" $if_num_app`
     GPRS_DEVICE=$GPRS_DEVICE_APP
     #    GPRS_DEVICE_MODEM="/dev/`ls $dev_path/*:1.$if_num_mod/tty`"
     if ! [ -z "$if_num_mod" ]; then
+        echo "modem interface bInterfaceClass: `cat $dev_path/*:1.$if_num_mod/bInterfaceClass`"
         GPRS_DEVICE_MODEM=`get_device_by_usb_interface "$dev_path" $if_num_mod`
     fi
 #    GPRS_BAUDRATE=115200
@@ -628,7 +628,8 @@ init_and_load_drivers() {
             1e2d:0061)
                 print_usb_device "Cinterion PLS8-E"
 
-                find_usb_device "$reload_modules" 1e2d  0061 /dev/ttyACM1
+                find_usb_device_by_interface_num "$reload_modules" $id 2
+                #find_usb_device "$reload_modules" 1e2d  0061 /dev/ttyACM1
                 sleep 1
                 initialize_port $GPRS_DEVICE
                 sleep 1
