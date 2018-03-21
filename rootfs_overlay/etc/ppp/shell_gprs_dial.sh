@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-12 17:51:39 gc]
+echo $0 [Version 2018-03-21 12:05:03 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -1257,6 +1257,11 @@ attach_PDP_context() {
             echo $ppp_pid >/var/run/ppp0.pid
             status_net "PDP context attached (GPRS or UMTS)"
 
+            # 2018-03-21 gc: reset error count on successfully PDP context attach
+            GPRS_ERROR_COUNT=0
+            write_error_count_file
+
+
 # #            Experimential: Use USB-CDC Networking interface on PLS-8
 #              at_cmd "AT+CGACT=0,1"
 #              at_cmd "AT+CGACT?"
@@ -1631,6 +1636,16 @@ attach_PDP_context() {
     return $result
 }
 
+write_error_count_file() {
+
+    cat >$GRPS_ERROR_COUNT_FILE <<FILE_END
+# GRPS-Error Count, do not edit!
+GPRS_ERROR_COUNT=$GPRS_ERROR_COUNT
+FILE_END
+
+true
+}
+
 ##############################################################################
 # Main
 ##############################################################################
@@ -1649,16 +1664,12 @@ if [ -f /var/run/ppp0.pid ]; then
 fi
 
 ##############################################################################
-# check error count
+# Initialize device and/or load kernel modules on first start
 ##############################################################################
-GPRS_ERROR_COUNT_MAX=3
 if [ -f $GRPS_ERROR_COUNT_FILE ] ; then
-    . $GRPS_ERROR_COUNT_FILE
-    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT + 1))
     init_and_load_drivers
 else
     init_and_load_drivers 1
-    GPRS_ERROR_COUNT=0
 fi
 
 
@@ -1666,45 +1677,50 @@ fi
 ##############################################################################
 # Check if TTY device does not block after open
 ##############################################################################
-if [ ! -c $GPRS_DEVICE ]; then
- exit 1
-fi
+if [ -c $GPRS_DEVICE ]; then
 
-print "Starting GPRS connection on device $GPRS_DEVICE ($GPRS_BAUDRATE baud)"
-print "(Modem device: $GPRS_DEVICE_MODEM)"
-
-status GPRS_DEVICE_CMD   "$GPRS_DEVICE"
-status GPRS_DEVICE_MODEM "$GPRS_DEVICE_MODEM"
-
-if ! initialize_port $GPRS_DEVICE; then
-    sleep 10
-    killall watchdog
-    echo initializing port failed
-    # 2012-10-11 gc: don't reboot here, we have gprs-watchdog now!
+    print "Connecting mobile broadband. Device $GPRS_DEVICE (Modem: $GPRS_DEVICE_MODEM) ($GPRS_BAUDRATE baud)"
+    
+    status GPRS_DEVICE_CMD   "$GPRS_DEVICE"
+    status GPRS_DEVICE_MODEM "$GPRS_DEVICE_MODEM"
+    
+    if ! initialize_port $GPRS_DEVICE; then
+        sleep 10
+        killall watchdog
+        echo initializing port failed
+        # 2012-10-11 gc: don't reboot here, we have gprs-watchdog now!
     #reboot
-    exit 3
-fi
-
-# connect file handle 3 with terminal adapter
-exec 3<>$GPRS_DEVICE
-
-print "ready"
-
-#command_mode
-
-for l in 1 2 3 4 5
-do
-    if at_cmd "AT"; then
-        break
-    else
-        command_mode
-        wait_quiet 1
+        exit 3
     fi
-done
+    
+    # connect file handle 3 with terminal adapter
+    exec 3<>$GPRS_DEVICE
+    
+    print "ready"
+    
+    #command_mode
+    
+    for l in 1 2 3 4 5
+    do
+        if at_cmd "AT"; then
+            break
+        else
+            command_mode
+            wait_quiet 1
+        fi
+    done
+fi
 
 ##############################################################################
 # check error count
 ##############################################################################
+GPRS_ERROR_COUNT_MAX=3
+if [ -f $GRPS_ERROR_COUNT_FILE ] ; then
+    . $GRPS_ERROR_COUNT_FILE
+    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT + 1))
+else
+    GPRS_ERROR_COUNT=0
+fi
 
 print GPRS_ERROR_COUNT: $GPRS_ERROR_COUNT
 
@@ -1712,16 +1728,15 @@ if [ $GPRS_ERROR_COUNT -ge $GPRS_ERROR_COUNT_MAX ] ; then
     print max err count reached
     # reload drivers in case /dev/ttyUSBxx device is not present
     init_and_load_drivers 1
-    GPRS_ERROR_COUNT=0
     identify_terminal_adapter
     reset_terminal_adapter
     init_and_load_drivers 1
+    exit 1
+else
+    GPRS_ERROR_COUNT=$((GPRS_ERROR_COUNT + 1))    
 fi
 
-cat >$GRPS_ERROR_COUNT_FILE <<FILE_END
-# GRPS-Error Count, do not edit!
-GPRS_ERROR_COUNT=$GPRS_ERROR_COUNT
-FILE_END
+write_error_count_file
 
 if ! at_cmd "AT"; then
     sys_mesg -e TA -p error `M_ "No response from terminal adapter, check connection" `
@@ -2102,6 +2117,9 @@ do
 
     if [ -z "$GPRS_ONLY_CSD" -o "$GPRS_ONLY_CSD" -eq 0 ]; then
         attach_PDP_context || do_restart=0
+    else
+        GPRS_ERROR_COUNT=0
+        write_error_count_file
     fi
 done
 
