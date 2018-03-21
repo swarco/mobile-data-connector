@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-21 12:05:03 gc]
+echo $0 [Version 2018-03-21 15:05:46 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -898,7 +898,8 @@ on_ring() {
                 ;;
 
             *CONNECT*)
-	        echo GPRS_ERROR_COUNT=0 >/tmp/gprs-error
+                GPRS_ERROR_COUNT=0
+                write_error_count_file
                 echo starting $GPRS_ANSWER_CSD_CMD
                 status_net "GSM / CSD connection active"
                 set_gprs_led 50 1000
@@ -1717,7 +1718,6 @@ fi
 GPRS_ERROR_COUNT_MAX=3
 if [ -f $GRPS_ERROR_COUNT_FILE ] ; then
     . $GRPS_ERROR_COUNT_FILE
-    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT + 1))
 else
     GPRS_ERROR_COUNT=0
 fi
@@ -1731,6 +1731,8 @@ if [ $GPRS_ERROR_COUNT -ge $GPRS_ERROR_COUNT_MAX ] ; then
     identify_terminal_adapter
     reset_terminal_adapter
     init_and_load_drivers 1
+    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT - 1))
+    write_error_count_file
     exit 1
 else
     GPRS_ERROR_COUNT=$((GPRS_ERROR_COUNT + 1))    
