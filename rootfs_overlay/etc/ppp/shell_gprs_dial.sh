@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-21 15:05:46 gc]
+echo $0 [Version 2018-03-21 15:39:33 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -666,13 +666,6 @@ init_and_load_drivers() {
                 TA_VENDOR="Telit"
                 TA_MODEL="UC864"
                 find_usb_device "" 1bc7 1004 /dev/ttyUSB0
-                sleep 1
-                initialize_port $GPRS_DEVICE
-                sleep 1
-                # enable verbose AT command result messages
-                exec 3<>$GPRS_DEVICE
-                at_cmd "ATv1"
-                sleep 1
                 ;;
 
             1bc7:0021)
@@ -684,12 +677,6 @@ init_and_load_drivers() {
                 # sleep 1
                 # initialize_port $GPRS_DEVICE
                 find_usb_device_by_interface_num "$reload_modules" $id 0 6
-
-                sleep 1
-                # enable verbose AT command result messages
-                exec 3<>$GPRS_DEVICE
-                at_cmd "ATv1"
-                wait_quiet 3
                 ;;
             
             esac
@@ -1710,6 +1697,14 @@ if [ -c $GPRS_DEVICE ]; then
             wait_quiet 1
         fi
     done
+
+    case "$TA_VENDOR $TA_MODEL" in
+        *Telit*)
+            at_cmd "ATv1"
+            ;;
+        *)
+            ;;
+    esac
 fi
 
 ##############################################################################
