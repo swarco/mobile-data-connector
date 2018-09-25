@@ -27,10 +27,13 @@
 .PHONY: all
 all: install
 
+CRONTAB_ENTRY = "\# m h dom mon dow command\n\# gprs-connection-test.sh runs ntp-query.sh twice a day when NTP-servers are configured\n24 2,14  * * * /etc/ppp/gprs-connection-test.sh"
 
 .PHONY: install
 install:
 	cd rootfs_overlay && cp -a . $(TARGET_DIR)/
+	grep gprs-connection-test.sh <$(TARGET_DIR)/etc/crontab >/dev/null 2>&1 || echo $(CRONTAB_ENTRY) >>$(TARGET_DIR)/etc/crontab 
+
 
 # Local Variables:
 # mode: makefile
