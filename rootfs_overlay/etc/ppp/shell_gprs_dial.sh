@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2018-03-21 15:39:33 gc]
+echo $0 [Version 2019-02-21 18:52:14 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -457,7 +457,17 @@ find_usb_device_by_interface_num() {
     local dev_path=$2
     local if_num_app=$3
     local if_num_mod="$4"
+    local vendor=$5
+    local product=$6
 
+    if [ \! -z "$reload_modules" -a \! -z "$vendor" -a \! -z "$product"  ]; then
+        exec 3<>/dev/null
+        fuser -k -9 $GPRS_DEVICE
+        sleep 1
+        rmmod usbserial; modprobe usbserial vendor=0x$vendor product=0x$product
+        sleep 2
+    fi
+    
     echo "app interface bInterfaceClass: `cat $dev_path/*:1.$if_num_app/bInterfaceClass`"
     #    GPRS_DEVICE_APP="/dev/`ls $dev_path/*:1.$if_num_app/tty`"
     GPRS_DEVICE_APP=`get_device_by_usb_interface "$dev_path" $if_num_app`
@@ -578,7 +588,7 @@ init_and_load_drivers() {
 
             1e2d:0053)
                 print_usb_device "Cinterion PH8 in USB component mode"
-                find_usb_device_by_interface_num "$reload_modules" $id 2
+                find_usb_device_by_interface_num "1" $id 2 "" 1e2d 0053
                 print "first USB port is $GPRS_DEVICE"
                 # find_usb_device "" 1e2d 0053 /dev/ttyUSB3
                 sleep 1
@@ -599,7 +609,7 @@ init_and_load_drivers() {
                         ;;
                 esac
 
-                find_usb_device_by_interface_num "$reload_modules" $id 2 3
+                find_usb_device_by_interface_num "" $id 2 3
                 ;;
 
             1e2d:0054)
