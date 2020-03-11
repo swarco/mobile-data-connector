@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2019-02-21 18:52:14 gc]
+echo $0 [Version 2020-03-11 15:52:09 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -47,6 +47,7 @@ GPRS_NET_STATUS_FILE=/tmp/gprs-net
 echo -n >$GPRS_STATUS_FILE
 
 GRPS_ERROR_COUNT_FILE=/tmp/gprs-error
+GPRS_ERROR_COUNT_MAX=4
 
 
 # echo file descriptor to raw AT commands and received answer from
@@ -1649,6 +1650,34 @@ true
 ##############################################################################
 set_gprs_led off
 
+##############################################################################
+# load and increment error count
+##############################################################################
+if [ -f $GRPS_ERROR_COUNT_FILE ] ; then
+    . $GRPS_ERROR_COUNT_FILE
+else
+    GPRS_ERROR_COUNT=0
+fi
+
+GPRS_ERROR_COUNT=$((GPRS_ERROR_COUNT + 1))    
+write_error_count_file
+
+print GPRS_ERROR_COUNT: $GPRS_ERROR_COUNT
+
+# 2020-03-11 gc: 
+# if we have a hardware modem reset facility (GPRS_RESET_CMD is set)
+# we can reset the modem even when errors in the initialization phase happens
+# (e.g. device /dev/ttyUSB* not present in case of USB communication errors)
+if [ \! -z "$GPRS_RESET_CMD" -a $GPRS_ERROR_COUNT -ge $GPRS_ERROR_COUNT_MAX ]
+then
+    reset_terminal_adapter
+    init_and_load_drivers 1
+    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT - 2))
+    write_error_count_file
+    exit 1
+fi
+
+
 if [ \! -z "$GPRS_START_CMD" ]; then
     /bin/sh -c "$GPRS_START_CMD"
 fi
@@ -1720,15 +1749,10 @@ fi
 ##############################################################################
 # check error count
 ##############################################################################
-GPRS_ERROR_COUNT_MAX=3
-if [ -f $GRPS_ERROR_COUNT_FILE ] ; then
-    . $GRPS_ERROR_COUNT_FILE
-else
-    GPRS_ERROR_COUNT=0
-fi
 
-print GPRS_ERROR_COUNT: $GPRS_ERROR_COUNT
 
+# check if modem need to be reseted by sending an AT command.
+# (sending AT commands can be done only after initialization of serial port)
 if [ $GPRS_ERROR_COUNT -ge $GPRS_ERROR_COUNT_MAX ] ; then
     print max err count reached
     # reload drivers in case /dev/ttyUSBxx device is not present
@@ -1736,14 +1760,10 @@ if [ $GPRS_ERROR_COUNT -ge $GPRS_ERROR_COUNT_MAX ] ; then
     identify_terminal_adapter
     reset_terminal_adapter
     init_and_load_drivers 1
-    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT - 1))
+    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT - 2))
     write_error_count_file
     exit 1
-else
-    GPRS_ERROR_COUNT=$((GPRS_ERROR_COUNT + 1))    
 fi
-
-write_error_count_file
 
 if ! at_cmd "AT"; then
     sys_mesg -e TA -p error `M_ "No response from terminal adapter, check connection" `
