@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2020-03-11 15:52:09 gc]
+echo $0 [Version 2021-04-08 12:02:12 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -1880,7 +1880,7 @@ case "$TA_VENDOR $TA_MODEL" in
 esac
 
 case "$TA_VENDOR $TA_MODEL" in
-    *SIEMENS*HC25* | *Cinterion*HC25* | *Cinterion*PH8* )
+    *SIEMENS*HC25* | *Cinterion*HC25* | *Cinterion*PH8* | *Cinterion*PLS8* )
         # supply net access type (GSM or UMTS) for UMTS capable TA
         if [ \! -z "$GPRS_NET_ACCESS_TYPE" ]; then
             op_cmd="AT+COPS=0,,,$GPRS_NET_ACCESS_TYPE"
