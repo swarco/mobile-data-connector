@@ -690,6 +690,14 @@ init_and_load_drivers() {
                 find_usb_device_by_interface_num "$reload_modules" $id 0 6
                 ;;
             
+            1bc7:1201)
+                print_usb_device "Telit LE910C4-EU 4G Module"
+                TA_VENDOR="Telit"
+                TA_MODEL="LE910"
+
+                find_usb_device_by_interface_num "$reload_modules" $id 4 5
+                ;;
+            
             esac
     done
 }
@@ -1560,7 +1568,7 @@ attach_PDP_context() {
                                 status_net "HSDPA network"
                                 ;;
                             *'#PSNT: 0,4'*)
-                                status_net "unknown network or not registered"
+                                status_net "LTE network"
                                 ;;
                             *)
                                 status_net "unknown network"
