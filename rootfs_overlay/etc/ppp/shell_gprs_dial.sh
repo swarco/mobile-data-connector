@@ -361,14 +361,14 @@ query_signal_quality() {
     print "Signal quality: ${r%% OK}"
     r=${r##*CSQ: }
     GPRS_CSQ=${r%%,*}
-    status GPRS_CSQ $GPRS_CSQ    
+    status GPRS_CSQ $GPRS_CSQ
 }
 
 query_board_temp() {
     at_cmd "AT^SCTM?"
     r=${r##^SCTM: *,*,}
     GPRS_TEMP="${r%% OK}"
-    print "Board temperature: ${GPRS_TEMP}�C"
+    print "Board temperature: ${GPRS_TEMP}°C"
 
     if [ $GPRS_TEMP -gt 60 ]; then
         sys_mesg_net -e NET -p warning `M_ "High modem temperature " `
@@ -2038,7 +2038,7 @@ at_cmd "ATS0=0"
               *HC25*)
                   #PH8 supports ^SCID
                   ;;
-              
+
               *)
                   at_cmd "AT^SCID"
                   print "SIM card id: $r"
@@ -2053,11 +2053,11 @@ at_cmd "ATS0=0"
 #
           at_cmd "AT^MONP"
           status GPRS_MONP "${r%%<br>OK}"
-          
+
           case "$TA_MODEL" in
               *HC25* | *TC35* | *PH8*)
                   ;;
-              
+
               *)
                   at_cmd "AT^SMONG"
                   status GPRS_SMONG "${r%%<br>OK}"
