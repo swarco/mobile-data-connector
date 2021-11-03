@@ -368,7 +368,7 @@ query_board_temp() {
     at_cmd "AT^SCTM?"
     r=${r##^SCTM: *,*,}
     GPRS_TEMP="${r%% OK}"
-    print "Board temperature: ${GPRS_TEMP}°C"
+    print "Board temperature: ${GPRS_TEMP}ï¿½C"
 
     if [ $GPRS_TEMP -gt 60 ]; then
         sys_mesg_net -e NET -p warning `M_ "High modem temperature " `
@@ -689,7 +689,7 @@ init_and_load_drivers() {
                 # initialize_port $GPRS_DEVICE
                 find_usb_device_by_interface_num "$reload_modules" $id 0 6
                 ;;
-            
+
             1bc7:1201)
                 print_usb_device "Telit LE910C4-EU 4G Module"
                 TA_VENDOR="Telit"
@@ -697,7 +697,15 @@ init_and_load_drivers() {
 
                 find_usb_device_by_interface_num "$reload_modules" $id 4 5
                 ;;
-            
+
+            1bc7:0036)
+                print_usb_device "Telic LT910 E"
+                TA_VENDOR="Telit"
+                TA_MODEL="LE910-EU1"
+
+                find_usb_device_by_interface_num "$reload_modules" $id 0 6
+                ;;
+
             esac
     done
 }
