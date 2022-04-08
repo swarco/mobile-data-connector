@@ -1903,7 +1903,7 @@ case "$TA_VENDOR $TA_MODEL" in
         fi
 
 
-        if [ \! -z "$GPRS_OPERATOR" -a "$GPRS_OPERATOR" -ne 0 ]; then
+        if [ \! -z "$GPRS_OPERATOR" -a "0$GPRS_OPERATOR" -ne 0 ]; then
             if [ \! -z "$GPRS_NET_ACCESS_TYPE" ]; then
                 op_cmd="AT+COPS=1,2,\"$GPRS_OPERATOR\",$GPRS_NET_ACCESS_TYPE"
             else
@@ -1914,7 +1914,7 @@ case "$TA_VENDOR $TA_MODEL" in
         ;;
 
     *)
-        if [ \! -z "$GPRS_OPERATOR" -a "$GPRS_OPERATOR" -ne 0 ]; then
+        if [ \! -z "$GPRS_OPERATOR" -a "0$GPRS_OPERATOR" -ne 0 ]; then
             op_cmd="AT+COPS=1,2,\"$GPRS_OPERATOR\""
             print "Setting manual selected operator to $op_cmd"
         fi
@@ -2125,7 +2125,7 @@ case "$TA_VENDOR $TA_MODEL" in
         ;;
 esac
 
-if [ -z "$GPRS_ONLY_CSD" -o "$GPRS_ONLY_CSD" -eq 0 ]; then
+if [ -z "$GPRS_ONLY_CSD" -o "0$GPRS_ONLY_CSD" -eq 0 ]; then
     do_restart=16
     ring_wait_time=5
 else
@@ -2158,7 +2158,7 @@ do
     ring_recv=0
     check_and_handle_SMS
 
-    if [ -z "$GPRS_ONLY_CSD" -o "$GPRS_ONLY_CSD" -eq 0 ]; then
+    if [ -z "$GPRS_ONLY_CSD" -o "0$GPRS_ONLY_CSD" -eq 0 ]; then
         attach_PDP_context || do_restart=0
     else
         GPRS_ERROR_COUNT=0
