@@ -19,7 +19,9 @@
 #*  
 #*****************************************************************************
 
-if [ -x /usr/swarco/bin/sys-mesg ]; then
+if [ -x /opt/swarco/bin/sys-mesg ]; then
+    SYS_MESG=/opt/swarco/bin/sys-mesg
+elif [ -x /usr/swarco/bin/sys-mesg ]; then
     SYS_MESG=/usr/swarco/bin/sys-mesg
 else
     SYS_MESG=/usr/weiss/bin/sys-mesg
