@@ -1328,8 +1328,7 @@ attach_PDP_context() {
 #             status_net "PDP context attached (GPRS or UMTS)"
 #             ;;
     esac
-    
-    set -x
+
 
     if [ \! -z "$GPRS_DEVICE_MODEM" ]; then
 # reconnect file handle 3 on application interface
