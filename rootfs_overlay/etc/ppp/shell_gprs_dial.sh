@@ -2007,6 +2007,10 @@ at_cmd "ATS0=0"
 ##############################################################################
   print "querying status information from terminal adapater:"
 #
+  at_cmd "AT+CGMM"
+  print "Model Identification: ${r%% OK}"
+  status GPRS_CGMM ${r%% OK}
+#
   at_cmd "AT+CGMR"
   print "Firmware Version: ${r%% OK}"
   status GPRS_CGMR ${r%% OK}
