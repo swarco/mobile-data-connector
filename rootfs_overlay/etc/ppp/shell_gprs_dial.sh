@@ -5,7 +5,7 @@
 # Package mobile-data-connector 
 # Shell-script based GPRS/UMTS/LTE mobile data network dial script
 #
-# Copyright (c) 2009-2018, SWARCO Traffic Systems GmbH
+# Copyright (c) 2009-2023, SWARCO Traffic Systems GmbH
 #                          Guido Classen <clagix@gmail.com>
 # All rights reserved.
 #     
@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2021-04-08 12:02:12 gc]
+echo $0 [Version 2023-02-15 13:13:28 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -1203,6 +1203,11 @@ attach_PDP_context() {
                 if at_cmd "AT"; then
                     break
                 fi
+                if [ "$l" == 5 ]; then
+                    print "FAILED to talk with modem interface $GPRS_DEVICE_MODEM"
+                    exit 1
+                fi
+                sleep 1
             done
         else
             GPRS_DEVICE_MODEM=""
