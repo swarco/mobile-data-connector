@@ -84,6 +84,9 @@ do
         GPRS_PPP_OPTIONS="$GPRS_PPP_OPTIONS usepeerdns"
     fi
 
+    if [ \! -z "$GPRS_START_CMD" ]; then
+        /bin/sh -c "$GPRS_START_CMD"
+    fi
 
     # check each device in list if it is available and an valid character device
     for DEVICE in $GPRS_DEVICE
