@@ -34,7 +34,7 @@
 #     2009-08-28 gc: initial version
 #
 
-echo $0 [Version 2023-02-15 13:13:28 gc]
+echo $0 [Version 2023-07-05 16:04:50 gc]
 
 #GPRS_DEVICE=/dev/ttyS0
 #GPRS_DEVICE=/dev/com1
@@ -1693,7 +1693,7 @@ if [ \! -z "$GPRS_RESET_CMD" -a $GPRS_ERROR_COUNT -ge $GPRS_ERROR_COUNT_MAX ]
 then
     reset_terminal_adapter
     init_and_load_drivers 1
-    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT - 2))
+    GPRS_ERROR_COUNT=$(($GPRS_ERROR_COUNT_MAX - 2))
     write_error_count_file
     exit 1
 fi
